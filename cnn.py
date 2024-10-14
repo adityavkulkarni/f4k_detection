@@ -1,11 +1,11 @@
 import numpy as np
 import tensorflow as tf
 import seaborn as sns
-from keras.src.layers import BatchNormalization
+
 from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
 
 from f4kReader import F4KData
 
@@ -145,7 +145,7 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 
-plt.savefig("training.pn")
+plt.savefig("training.png")
 # Save the trained model
 model.save('fish_species_cnn_model.h5')
 
@@ -190,4 +190,4 @@ sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=class_la
 plt.title('Confusion Matrix')
 plt.xlabel('Predicted Label')
 plt.ylabel('True Label')
-plt.show()
+plt.savefig("confusion.png")
