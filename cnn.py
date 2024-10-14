@@ -87,7 +87,7 @@ test_datagen = ImageDataGenerator(rescale=1.0/255)
 
 # Load and preprocess test data from directory
 test_generator = test_datagen.flow_from_directory(
-    f4k.validation_image_dir,  # Replace with path to your test data directory
+    f4k.test_image_dir,  # Replace with path to your test data directory
     target_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCH_SIZE,
     class_mode='categorical'

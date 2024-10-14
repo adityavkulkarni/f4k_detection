@@ -53,6 +53,8 @@ class F4KData:
         self.mask_image_dir = os.path.join(self.dataset_path, 'mask_image')
         self.train_image_dir = os.path.join(self.dataset_path, 'train')
         self.validation_image_dir = os.path.join(self.dataset_path, 'validation')
+        self.test_image_dir = os.path.join(self.dataset_path, 'test')
+
         self.load_data()
         self.image_cnt = len(self.clusters)
         if not os.path.exists(self.preprocessed_image_dir) or len(os.listdir(self.preprocessed_image_dir)) == 0:
@@ -111,8 +113,11 @@ class F4KData:
 
     def train_test_split_dir(self, training_size=0.8):
         train, test = train_test_split(self.clusters_csv, train_size=training_size, random_state=42)
+        train, validation = train_test_split(train, train_size=training_size, random_state=42)
         train = list(train["preprocessed_image"])
+        validation = list(validation["preprocessed_image"])
         test = list(test["preprocessed_image"])
+        print(f"Training images: {len(train)}\nValidation images: {len(validation)}\nTest images: {len(test)}")
         i = 0
         for image in self.clusters:
             if image["preprocessed_image"] in train:
@@ -120,10 +125,15 @@ class F4KData:
                     os.makedirs(os.path.join(self.train_image_dir, str(image["id"])))
                 shutil.copy(image["preprocessed_image"], os.path.join(self.train_image_dir, str(image["id"])))
                 image["dataset"] = "train"
-            else:
+            elif image["preprocessed_image"] in validation:
                 if not os.path.exists(os.path.join(self.validation_image_dir, str(image["id"]))):
                     os.makedirs(os.path.join(self.validation_image_dir, str(image["id"])))
                 shutil.copy(image["preprocessed_image"], os.path.join(self.validation_image_dir, str(image["id"])))
+                image["dataset"] = "validaiton"
+            else:
+                if not os.path.exists(os.path.join(self.test_image_dir, str(image["id"]))):
+                    os.makedirs(os.path.join(self.test_image_dir, str(image["id"])))
+                shutil.copy(image["preprocessed_image"], os.path.join(self.test_image_dir, str(image["id"])))
                 image["dataset"] = "test"
             progress_bar(i + 1, self.image_cnt, prefix=f"Copying images({i+1}/{self.image_cnt})", suffix=f"{image['preprocessed_image']}")
             i += 1
