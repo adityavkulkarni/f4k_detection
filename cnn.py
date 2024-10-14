@@ -1,8 +1,14 @@
+import numpy as np
 import tensorflow as tf
+import seaborn as sns
+from keras.src.layers import BatchNormalization
+from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+
 from f4kReader import F4KData
+
 
 # Define constants
 IMG_HEIGHT = 224
@@ -45,7 +51,7 @@ validation_generator = validation_datagen.flow_from_directory(
 )
 
 # Build the CNN model
-model = Sequential([
+"""model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
     MaxPooling2D(pool_size=(2, 2)),
 
@@ -58,6 +64,34 @@ model = Sequential([
     Flatten(),
     Dense(512, activation='relu'),
     Dropout(0.5),
+    Dense(NUM_CLASSES, activation='softmax')
+])"""
+model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    BatchNormalization(),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+
+    Conv2D(64, (3, 3), activation='relu'),
+    BatchNormalization(),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+
+    Conv2D(128, (3, 3), activation='relu'),
+    BatchNormalization(),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+
+    Conv2D(256, (3, 3), activation='relu'),
+    BatchNormalization(),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+
+    Flatten(),
+    Dense(512, activation='relu'),
+    BatchNormalization(),
+    Dropout(0.5),
+
     Dense(NUM_CLASSES, activation='softmax')
 ])
 
@@ -135,3 +169,25 @@ test_loss, test_accuracy = model.evaluate(
 
 print(f"Test Loss: {test_loss:.4f}")
 print(f"Test Accuracy: {test_accuracy:.4f}")
+
+Y_pred = model.predict(test_generator, steps=test_generator.samples // BATCH_SIZE + 1)
+y_pred = np.argmax(Y_pred, axis=1)
+
+# Get true labels from the generator
+y_true = test_generator.classes
+
+# Generate a classification report
+class_labels = [f4k.species_cluster_id_map[k-1] for k in list(test_generator.class_indices.keys()) ] # Get class labels from the generator
+report = classification_report(y_true, y_pred, target_names=class_labels)
+print("Classification Report:\n", report)
+
+# Generate a confusion matrix
+conf_matrix = confusion_matrix(y_true, y_pred)
+
+# Plot the confusion matrix
+plt.figure(figsize=(12, 10))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=class_labels, yticklabels=class_labels)
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.show()
