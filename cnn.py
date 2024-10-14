@@ -179,7 +179,7 @@ y_pred = np.argmax(Y_pred, axis=1)
 y_true = test_generator.classes
 
 # Generate a classification report
-class_labels = [f4k.species_cluster_id_map[v] for k, v in list(test_generator.class_indices)] # Get class labels from the generator
+class_labels = [f4k.species_cluster_id_map[int(k)-1] for k in test_generator.class_indices] # Get class labels from the generator
 report = classification_report(y_true, y_pred, target_names=class_labels)
 print("Classification Report:\n", report)
 
