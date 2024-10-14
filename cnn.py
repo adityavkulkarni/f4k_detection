@@ -50,6 +50,17 @@ validation_generator = validation_datagen.flow_from_directory(
     class_mode='categorical'
 )
 
+# Create an ImageDataGenerator object for test data without augmentation
+test_datagen = ImageDataGenerator(rescale=1.0/255)
+
+# Load and preprocess test data from directory
+test_generator = test_datagen.flow_from_directory(
+    f4k.test_image_dir,  # Replace with path to your test data directory
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    class_mode='categorical'
+)
+
 # Build the CNN model
 """model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
@@ -111,6 +122,20 @@ history = model.fit(
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE
 )
+# Save the trained model
+model.save('fish_species_cnn_model.h5')
+
+
+# Evaluate the model on the test data
+test_loss, test_accuracy = model.evaluate(
+    test_generator,
+    steps=test_generator.samples // BATCH_SIZE
+)
+
+print(f"Test Loss: {test_loss:.4f}")
+print(f"Test Accuracy: {test_accuracy:.4f}")
+
+
 import matplotlib.pyplot as plt
 
 # Retrieve the history data
@@ -146,29 +171,6 @@ plt.ylabel('Accuracy')
 plt.legend()
 
 plt.savefig("training.png")
-# Save the trained model
-model.save('fish_species_cnn_model.h5')
-
-
-# Create an ImageDataGenerator object for test data without augmentation
-test_datagen = ImageDataGenerator(rescale=1.0/255)
-
-# Load and preprocess test data from directory
-test_generator = test_datagen.flow_from_directory(
-    f4k.test_image_dir,  # Replace with path to your test data directory
-    target_size=(IMG_HEIGHT, IMG_WIDTH),
-    batch_size=BATCH_SIZE,
-    class_mode='categorical'
-)
-
-# Evaluate the model on the test data
-test_loss, test_accuracy = model.evaluate(
-    test_generator,
-    steps=test_generator.samples // BATCH_SIZE
-)
-
-print(f"Test Loss: {test_loss:.4f}")
-print(f"Test Accuracy: {test_accuracy:.4f}")
 
 Y_pred = model.predict(test_generator, steps=test_generator.samples // BATCH_SIZE + 1)
 y_pred = np.argmax(Y_pred, axis=1)
@@ -177,7 +179,7 @@ y_pred = np.argmax(Y_pred, axis=1)
 y_true = test_generator.classes
 
 # Generate a classification report
-class_labels = [f4k.species_cluster_id_map[k-1] for k in list(test_generator.class_indices.keys()) ] # Get class labels from the generator
+class_labels = [f4k.species_cluster_id_map[k] for k in list(test_generator.class_indices)] # Get class labels from the generator
 report = classification_report(y_true, y_pred, target_names=class_labels)
 print("Classification Report:\n", report)
 
