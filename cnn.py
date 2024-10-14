@@ -77,7 +77,41 @@ history = model.fit(
     validation_data=validation_generator,
     validation_steps=validation_generator.samples // BATCH_SIZE
 )
+import matplotlib.pyplot as plt
 
+# Retrieve the history data
+history_dict = history.history
+
+# Extract loss and accuracy values for training and validation
+train_loss = history_dict['loss']
+val_loss = history_dict['val_loss']
+train_accuracy = history_dict['accuracy']
+val_accuracy = history_dict['val_accuracy']
+
+# Determine the number of epochs
+epochs = range(1, len(train_loss) + 1)
+
+# Plot training and validation loss
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.plot(epochs, train_loss, 'bo-', label='Training Loss')
+plt.plot(epochs, val_loss, 'ro-', label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plot training and validation accuracy
+plt.subplot(1, 2, 2)
+plt.plot(epochs, train_accuracy, 'bo-', label='Training Accuracy')
+plt.plot(epochs, val_accuracy, 'ro-', label='Validation Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+
+plt.savefig("training.pn")
 # Save the trained model
 model.save('fish_species_cnn_model.h5')
 
