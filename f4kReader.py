@@ -55,13 +55,13 @@ class F4KData:
         self.validation_image_dir = os.path.join(self.dataset_path, 'validation')
         self.load_data()
         self.image_cnt = len(self.clusters)
-        if len(os.listdir(self.preprocessed_image_dir)) == 0:
+        if not os.path.exists(self.preprocessed_image_dir) or len(os.listdir(self.preprocessed_image_dir)) == 0:
             i = 0
             for image in self.clusters:
                 self.enhance_image(image["fish_image"], image["preprocessed_image"])
                 progress_bar(i + 1, self.image_cnt, prefix=f"Enhancing images({i+1}/{self.image_cnt})", suffix=f"{image['preprocessed_image']}")
                 i += 1
-        if len(os.listdir(self.train_image_dir)) == 0:
+        if not os.path.exists(self.train_image_dir) or len(os.listdir(self.train_image_dir)) == 0:
             self.train_test_split_dir()
             self.clusters_csv = pd.read_csv(os.path.join(self.dataset_path, 'clusters.csv'))
 
