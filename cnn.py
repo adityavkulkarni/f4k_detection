@@ -24,7 +24,7 @@ result = f4k.clusters_df.groupby("id").size().reset_index(name='count')
 
 # Convert the resulting DataFrame to a dictionary with id as key and count as value
 class_samples = result.set_index('id').to_dict()['count']
-class_samples = {str(k): v for k, v in class_samples.items()}
+class_samples = {k-1: v for k, v in class_samples.items()}
 class_labels = list(class_samples.keys())
 counts = np.array(list(class_samples.values()))
 class_indices = np.arange(len(class_samples))
