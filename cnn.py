@@ -3,6 +3,7 @@ import tensorflow as tf
 import seaborn as sns
 
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.utils import compute_class_weight
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
@@ -19,6 +20,20 @@ NUM_CLASSES = 23  # Number of fish species
 
 f4k = F4KData(dataset_path="./fishRecognition_GT")
 
+result = f4k.clusters_df.groupby("id").size().reset_index(name='count')
+
+# Convert the resulting DataFrame to a dictionary with id as key and count as value
+class_samples = result.set_index('id').to_dict()['count']
+class_samples = {str(k): v for k, v in class_samples.items()}
+class_labels = list(class_samples.keys())
+counts = np.array(list(class_samples.values()))
+class_indices = np.arange(len(class_samples))
+
+# Compute class weights
+class_weights = compute_class_weight('balanced', classes=class_indices, y=np.repeat(class_indices, counts))
+class_weights_dict = {label: weight for label, weight in zip(class_labels, class_weights)}
+
+print("Computed Class Weights:", class_weights_dict)
 # Create an ImageDataGenerator object for training data with augmentation
 train_datagen = ImageDataGenerator(
     rescale=1.0 / 255,  # Normalize pixel values to [0, 1]
@@ -120,7 +135,8 @@ history = model.fit(
     steps_per_epoch=train_generator.samples // BATCH_SIZE,
     epochs=10,
     validation_data=validation_generator,
-    validation_steps=validation_generator.samples // BATCH_SIZE
+    validation_steps=validation_generator.samples // BATCH_SIZE,
+    class_weight=class_weights_dict
 )
 # Save the trained model
 model.save('fish_species_cnn_model.h5')
@@ -179,7 +195,7 @@ y_pred = np.argmax(Y_pred, axis=1)
 y_true = test_generator.classes
 
 # Generate a classification report
-class_labels = [f4k.species_cluster_id_map[int(k)] for k in test_generator.class_indices] # Get class labels from the generator
+class_labels = [f4k.species_cluster_id_map[int(k)] for k in test_generator.class_indices]
 report = classification_report(y_true, y_pred, target_names=class_labels)
 print("Classification Report:\n", report)
 

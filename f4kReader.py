@@ -45,7 +45,7 @@ class F4KData:
 
     def __init__(self, dataset_path, ):
         self.clusters = []
-        self.clusters_csv = pd.DataFrame()
+        self.clusters_df = pd.DataFrame()
 
         self.dataset_path = dataset_path
         self.fish_image_dir = os.path.join(self.dataset_path, 'fish_image')
@@ -65,7 +65,7 @@ class F4KData:
                 i += 1
         if not os.path.exists(self.train_image_dir) or len(os.listdir(self.train_image_dir)) == 0:
             self.train_test_split_dir()
-            self.clusters_csv = pd.read_csv(os.path.join(self.dataset_path, 'clusters.csv'))
+            self.clusters_df = pd.read_csv(os.path.join(self.dataset_path, 'clusters.csv'))
 
     def load_data(self):
         cluster_range = [(int(x.split("_")[1]), x) for x in os.listdir(self.fish_image_dir) if "fish" in x]
@@ -82,9 +82,9 @@ class F4KData:
                                                 image.replace("fish", "mask")),
                     "file_name": image
                 })
-        self.clusters_csv = pd.DataFrame(self.clusters).sort_values(by=["species"])
-        self.clusters_csv.set_index("id", inplace=True)
-        self.clusters_csv.to_csv(os.path.join(self.dataset_path, 'clusters.csv'))
+        self.clusters_df = pd.DataFrame(self.clusters).sort_values(by=["species"])
+        self.clusters_df.set_index("id", inplace=True)
+        self.clusters_df.to_csv(os.path.join(self.dataset_path, 'clusters.csv'))
 
     @staticmethod
     def enhance_image(image_path, output_path):
@@ -112,7 +112,7 @@ class F4KData:
         # return sharpened
 
     def train_test_split_dir(self, training_size=0.8):
-        train, test = train_test_split(self.clusters_csv, train_size=training_size, random_state=42)
+        train, test = train_test_split(self.clusters_df, train_size=training_size, random_state=42)
         train, validation = train_test_split(train, train_size=training_size, random_state=42)
         train = list(train["preprocessed_image"])
         validation = list(validation["preprocessed_image"])
@@ -137,9 +137,9 @@ class F4KData:
                 image["dataset"] = "test"
             progress_bar(i + 1, self.image_cnt, prefix=f"Copying images({i+1}/{self.image_cnt})", suffix=f"{image['preprocessed_image']}")
             i += 1
-        self.clusters_csv = pd.DataFrame(self.clusters).sort_values(by=["species"])
-        self.clusters_csv.set_index("id", inplace=True)
-        self.clusters_csv.to_csv(os.path.join(self.dataset_path, 'clusters.csv'))
+        self.clusters_df = pd.DataFrame(self.clusters).sort_values(by=["species"])
+        self.clusters_df.set_index("id", inplace=True)
+        self.clusters_df.to_csv(os.path.join(self.dataset_path, 'clusters.csv'))
 
 
 if __name__ == '__main__':
